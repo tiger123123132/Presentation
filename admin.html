@@ -29,8 +29,9 @@ p{margin:0}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 label{font-size:13px;color:var(--muted)}
-input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;min-width:0}
-input[dir=ltr]{text-align:left}
+input[type=text],input[type=password],input[type=date]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;min-width:0}
+.ltr{direction:ltr;text-align:left}
+.check{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:none;color:var(--fg);padding:8px 14px}
 button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600;padding:10px 16px}
 button:disabled{opacity:.6;cursor:default}
@@ -45,7 +46,8 @@ button.danger{color:var(--danger)}
 .status{min-height:1.4em;font-size:14px}
 .status.err{color:var(--danger)}
 .top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
-.ltr{direction:ltr;unicode-bidi:plaintext}
+.stack{display:flex;flex-direction:column;gap:24px}
+.ver{font-size:11px;color:var(--muted);text-align:center}
 </style>
 </head>
 <body>
@@ -55,30 +57,37 @@ button.danger{color:var(--danger)}
     <button id="logout" type="button" hidden>تسجيل خروج</button>
   </div>
 
+  <!-- 1) اسم المستخدم وكلمة المرور -->
   <form id="gate" class="card" hidden>
     <h2>تسجيل الدخول</h2>
-    <div class="field"><label for="user">اسم المستخدم</label><input id="user" dir="ltr" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
-    <div class="field"><label for="pass">كلمة المرور</label><input id="pass" dir="ltr" type="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
-    <label style="display:flex;gap:8px;align-items:center"><input id="showpass" type="checkbox" style="width:auto"> إظهار كلمة المرور</label>
+    <div class="field"><label for="user">اسم المستخدم</label>
+      <input id="user" type="text" class="ltr" autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label for="pass">كلمة المرور</label>
+      <input id="pass" type="password" class="ltr" autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <label class="check"><input id="showpass" type="checkbox"> إظهار كلمة المرور</label>
     <button class="primary" type="submit">دخول</button>
     <div class="status" id="gateStatus"></div>
   </form>
 
-  <form id="login" class="card" hidden>
+  <!-- 2) ربط GitHub (مرة وحدة) -->
+  <form id="link" class="card" hidden>
     <h2>ربط GitHub (مرة وحدة)</h2>
     <p class="muted">الصفحة تحفظ التعديلات في GitHub، فتحتاج مفتاح الوصول (Token) حقك. ينحفظ في هذا المتصفح فقط.</p>
-    <div class="field"><label for="repo">اسم المستودع (مثال: saad/lessons)</label><input id="repo" dir="ltr" required placeholder="username/repo"></div>
-    <div class="field"><label for="token">مفتاح الوصول</label><input id="token" dir="ltr" type="password" required placeholder="github_pat_..."></div>
-    <button class="primary" type="submit">دخول</button>
-    <div class="status" id="loginStatus"></div>
+    <div class="field"><label for="repo">اسم المستودع (مثال: saad/lessons)</label>
+      <input id="repo" type="text" class="ltr" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="username/repo"></div>
+    <div class="field"><label for="token">مفتاح الوصول</label>
+      <input id="token" type="password" class="ltr" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="github_pat_..."></div>
+    <button class="primary" type="submit">حفظ والمتابعة</button>
+    <div class="status" id="linkStatus"></div>
   </form>
 
-  <div id="panel" hidden style="display:none;flex-direction:column;gap:24px">
+  <!-- 3) لوحة الدروس -->
+  <div id="panel" class="stack" hidden>
     <form id="add" class="card">
       <h2>إضافة درس</h2>
-      <div class="field"><label for="title">اسم الدرس</label><input id="title" required placeholder="مثال: الكسور العشرية"></div>
-      <div class="field"><label for="students">الطلاب اللي بيشرحونه (افصل بينهم بفاصلة)</label><input id="students" required placeholder="مثال: أحمد، خالد، فهد"></div>
-      <div class="field"><label for="date">تاريخ الدرس</label><input id="date" type="date" required></div>
+      <div class="field"><label for="title">اسم الدرس</label><input id="title" type="text" placeholder="مثال: الكسور العشرية"></div>
+      <div class="field"><label for="students">الطلاب اللي بيشرحونه (افصل بينهم بفاصلة)</label><input id="students" type="text" placeholder="مثال: أحمد، خالد، فهد"></div>
+      <div class="field"><label for="date">تاريخ الدرس</label><input id="date" type="date"></div>
       <button class="primary" id="addBtn" type="submit">إضافة</button>
       <div class="status" id="status"></div>
     </form>
@@ -87,115 +96,37 @@ button.danger{color:var(--danger)}
       <ul class="list" id="list"></ul>
     </section>
   </div>
+
+  <div class="ver">النسخة 4</div>
 </div>
 
 <script>
 (function(){
   var FILE = 'lessons.js';
+  // بصمة (اسم المستخدم + كلمة المرور) بحروف صغيرة، فالحروف الكبيرة والصغيرة ما تفرق
+  var HASH = '75d41e5d75c4936a0ab86a8500f16a993319b2574f892a53edd23ab9039f6d1d';
   var $ = function(id){ return document.getElementById(id); };
   var lessons = [], sha = null, busy = false;
 
-  function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} return null; }
+  /* ---------- أدوات ---------- */
+  function store(k, v){
+    try{
+      if(v === undefined) return localStorage.getItem(k);
+      if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v);
+    }catch(e){}
+    return null;
+  }
+  function session(k, v){
+    try{
+      if(v === undefined) return sessionStorage.getItem(k);
+      if(v === null) sessionStorage.removeItem(k); else sessionStorage.setItem(k, v);
+    }catch(e){}
+    return null;
+  }
   function say(id, msg, err){ var e = $(id); e.textContent = msg || ''; e.className = 'status' + (err ? ' err' : ''); }
 
-  function api(path, opts){
-    opts = opts || {};
-    opts.headers = Object.assign({'Accept':'application/vnd.github+json','Authorization':'Bearer ' + store('token'),'X-GitHub-Api-Version':'2022-11-28'}, opts.headers || {});
-    opts.cache = 'no-store';
-    return fetch('https://api.github.com/repos/' + store('repo') + '/contents/' + path, opts);
-  }
-
-  function fromB64(b){ var bin = atob(b.replace(/\n/g,'')); var bytes = Uint8Array.from(bin, function(c){ return c.charCodeAt(0); }); return new TextDecoder().decode(bytes); }
-  function toB64(s){ var bytes = new TextEncoder().encode(s); var bin = ''; bytes.forEach(function(b){ bin += String.fromCharCode(b); }); return btoa(bin); }
-
-  function serialize(list){
-    return '// هذا الملف تعدله صفحة admin.html تلقائيًا.\n\nconst LESSONS = ' + JSON.stringify(list, null, 2) + ';\n';
-  }
-  function parse(text){
-    var i = text.indexOf('const LESSONS'); if(i < 0) throw new Error('bad file');
-    var j = text.indexOf('=', i), k = text.lastIndexOf(';');
-    return (new Function('return ' + text.slice(j + 1, k)))();
-  }
-
-  async function load(){
-    var r = await api(FILE);
-    if(r.status === 401 || r.status === 403) throw new Error('auth');
-    if(r.status === 404) throw new Error('notfound');
-    if(!r.ok) throw new Error('http ' + r.status);
-    var j = await r.json();
-    sha = j.sha;
-    lessons = parse(fromB64(j.content));
-  }
-
-  async function save(message){
-    var r = await api(FILE, {method:'PUT', body: JSON.stringify({message: message, content: toB64(serialize(lessons)), sha: sha})});
-    if(r.status === 409 || r.status === 422) throw new Error('conflict');
-    if(r.status === 401 || r.status === 403) throw new Error('auth');
-    if(!r.ok) throw new Error('http ' + r.status);
-    var j = await r.json();
-    sha = j.content.sha;
-  }
-
-  function errText(e){
-    if(e.message === 'auth') return 'المفتاح غير صحيح أو ما عنده صلاحية على هذا المستودع.';
-    if(e.message === 'notfound') return 'ما لقيت المستودع أو الملف lessons.js. تأكد من الاسم.';
-    if(e.message === 'conflict') return 'الملف تغيّر من مكان ثاني. حدّث الصفحة وحاول مرة ثانية.';
-    return 'صار خطأ في الاتصال. حاول مرة ثانية.';
-  }
-
-  function fmt(iso){ var p = iso.split('-').map(Number); return new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {day:'numeric', month:'long', year:'numeric'}).format(new Date(p[0], p[1]-1, p[2])); }
-
-  function renderList(){
-    var ul = $('list'); ul.textContent = '';
-    if(!lessons.length){ var li = document.createElement('li'); li.className = 'muted'; li.textContent = 'ما فيه دروس بعد.'; ul.appendChild(li); return; }
-    lessons.map(function(l, i){ return {l:l, i:i}; }).sort(function(a, b){ return a.l.date < b.l.date ? 1 : -1; }).forEach(function(o){
-      var l = o.l, li = document.createElement('li'); li.className = 'item' + (l.done ? ' done' : '');
-      var info = document.createElement('div'); info.className = 'info';
-      var t = document.createElement('span'); t.className = 't'; t.textContent = l.title;
-      var m = document.createElement('span'); m.className = 'muted'; m.textContent = l.students.join('، ') + ' · ' + fmt(l.date);
-      info.appendChild(t); info.appendChild(m);
-      var btns = document.createElement('div'); btns.className = 'btns';
-      var d = document.createElement('button'); d.type = 'button'; d.textContent = l.done ? 'إلغاء تم الشرح' : 'تم الشرح';
-      d.addEventListener('click', function(){ change(function(){ if(l.done) delete l.done; else l.done = true; }, 'تحديث حالة: ' + l.title); });
-      var x = document.createElement('button'); x.type = 'button'; x.className = 'danger'; x.textContent = 'حذف';
-      x.addEventListener('click', function(){
-        if(x.dataset.sure !== '1'){ x.dataset.sure = '1'; x.textContent = 'تأكيد الحذف'; setTimeout(function(){ x.dataset.sure = ''; x.textContent = 'حذف'; }, 3000); return; }
-        change(function(){ lessons.splice(lessons.indexOf(l), 1); }, 'حذف درس: ' + l.title);
-      });
-      btns.appendChild(d); btns.appendChild(x);
-      li.appendChild(info); li.appendChild(btns); ul.appendChild(li);
-    });
-  }
-
-  async function change(fn, msg){
-    if(busy) return; busy = true; say('status', 'جاري الحفظ…');
-    try{ fn(); await save(msg); renderList(); say('status', 'تم الحفظ. التعديل يظهر في الموقع بعد دقيقة تقريبًا.'); }
-    catch(e){ say('status', errText(e), true); try{ await load(); renderList(); }catch(_){} }
-    busy = false;
-  }
-
-  function showPanel(){
-    $('login').hidden = true; $('logout').hidden = false;
-    $('panel').hidden = false; $('panel').style.display = 'flex';
-    renderList();
-  }
-  function showLogin(){
-    $('panel').hidden = true; $('panel').style.display = 'none'; $('logout').hidden = true; $('login').hidden = false;
-    $('repo').value = store('repo') || '';
-  }
-
-  $('login').addEventListener('submit', async function(e){
-    e.preventDefault();
-    store('repo', $('repo').value.trim()); store('token', $('token').value.trim());
-    say('loginStatus', 'جاري التحقق…');
-    try{ await load(); $('token').value = ''; say('loginStatus', ''); showPanel(); }
-    catch(err){ say('loginStatus', errText(err), true); store('token', null); }
-  });
-
-  $('logout').addEventListener('click', function(){ try{ sessionStorage.removeItem('auth'); }catch(e){} lessons = []; showGate(); });
-
-  var HASH = '6d3e03d0f819e60849dfcade8af42b7432c3549fd918b6addcc3e43353a58568';
-  function sha(s){
+  // SHA-256 مكتوبة داخل الصفحة، ما تعتمد على المتصفح
+  function sha256(s){
     var K = [0x428a2f98,0x71374491,0xb5c0fbcf,0xe9b5dba5,0x3956c25b,0x59f111f1,0x923f82a4,0xab1c5ed5,0xd807aa98,0x12835b01,0x243185be,0x550c7dc3,0x72be5d74,0x80deb1fe,0x9bdc06a7,0xc19bf174,0xe49b69c1,0xefbe4786,0x0fc19dc6,0x240ca1cc,0x2de92c6f,0x4a7484aa,0x5cb0a9dc,0x76f988da,0x983e5152,0xa831c66d,0xb00327c8,0xbf597fc7,0xc6e00bf3,0xd5a79147,0x06ca6351,0x14292967,0x27b70a85,0x2e1b2138,0x4d2c6dfc,0x53380d13,0x650a7354,0x766a0abb,0x81c2c92e,0x92722c85,0xa2bfe8a1,0xa81a664b,0xc24b8b70,0xc76c51a3,0xd192e819,0xd6990624,0xf40e3585,0x106aa070,0x19a4c116,0x1e376c08,0x2748774c,0x34b0bcb5,0x391c0cb3,0x4ed8aa4a,0x5b9cca4f,0x682e6ff3,0x748f82ee,0x78a5636f,0x84c87814,0x8cc70208,0x90befffa,0xa4506ceb,0xbef9a3f7,0xc67178f2];
     var H = [0x6a09e667,0xbb67ae85,0x3c6ef372,0xa54ff53a,0x510e527f,0x9b05688c,0x1f83d9ab,0x5be0cd19];
     var b = Array.from(new TextEncoder().encode(s)), l = b.length * 8;
@@ -204,8 +135,8 @@ button.danger{color:var(--danger)}
     [hi, lo].forEach(function(v){ b.push((v >>> 24) & 255, (v >>> 16) & 255, (v >>> 8) & 255, v & 255); });
     function r(x, n){ return (x >>> n) | (x << (32 - n)); }
     for(var i = 0; i < b.length; i += 64){
-      var w = [];
-      for(var t = 0; t < 16; t++) w[t] = (b[i+4*t] << 24) | (b[i+4*t+1] << 16) | (b[i+4*t+2] << 8) | b[i+4*t+3];
+      var w = [], t;
+      for(t = 0; t < 16; t++) w[t] = (b[i+4*t] << 24) | (b[i+4*t+1] << 16) | (b[i+4*t+2] << 8) | b[i+4*t+3];
       for(t = 16; t < 64; t++){
         var s0 = r(w[t-15], 7) ^ r(w[t-15], 18) ^ (w[t-15] >>> 3), s1 = r(w[t-2], 17) ^ r(w[t-2], 19) ^ (w[t-2] >>> 10);
         w[t] = (w[t-16] + s0 + w[t-7] + s1) | 0;
@@ -220,49 +151,164 @@ button.danger{color:var(--danger)}
     }
     return H.map(function(x){ return ('00000000' + (x >>> 0).toString(16)).slice(-8); }).join('');
   }
-  function showGate(){
-    $('panel').hidden = true; $('panel').style.display = 'none'; $('login').hidden = true; $('logout').hidden = true;
-    $('gate').hidden = false; $('pass').value = '';
+
+  // يوحّد اللي تكتبه لوحة المفاتيح: أرقام عربية، نقطة عربية، رموز مخفية، مسافات
+  function clean(s){
+    return String(s || '').normalize('NFKC')
+      .replace(/[​-‏‪-‮⁦-⁩﻿]/g, '')
+      .replace(/[٠-٩]/g, function(c){ return String(c.charCodeAt(0) - 0x0660); })
+      .replace(/[۰-۹]/g, function(c){ return String(c.charCodeAt(0) - 0x06F0); })
+      .replace(/[٫۔。]/g, '.')
+      .trim().toLowerCase();
   }
-  $('showpass').addEventListener('change', function(){ $('pass').type = this.checked ? 'text' : 'password'; });
-  $('gate').addEventListener('submit', async function(e){
-    e.preventDefault();
-    var ok = false;
-    function clean(s){
-      return s.normalize('NFKC').replace(/[​-‏‪-‮⁦-⁩﻿]/g, '')
-        .replace(/[٠-٩]/g, function(c){ return String(c.charCodeAt(0) - 0x0660); })
-        .replace(/[۰-۹]/g, function(c){ return String(c.charCodeAt(0) - 0x06F0); })
-        .replace(/[٫۔。]/g, '.');
+
+  /* ---------- GitHub ---------- */
+  function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({
+      'Accept': 'application/vnd.github+json',
+      'Authorization': 'Bearer ' + store('token'),
+      'X-GitHub-Api-Version': '2022-11-28'
+    }, opts.headers || {});
+    opts.cache = 'no-store';
+    return fetch('https://api.github.com/repos/' + store('repo') + '/contents/' + path, opts);
+  }
+  function fromB64(b){
+    var bin = atob(b.replace(/\n/g, ''));
+    return new TextDecoder().decode(Uint8Array.from(bin, function(c){ return c.charCodeAt(0); }));
+  }
+  function toB64(s){
+    var bin = ''; new TextEncoder().encode(s).forEach(function(x){ bin += String.fromCharCode(x); });
+    return btoa(bin);
+  }
+  function serialize(list){
+    return '// هذا الملف تعدله صفحة admin.html تلقائيًا.\n\nconst LESSONS = ' + JSON.stringify(list, null, 2) + ';\n';
+  }
+  function parse(text){
+    var i = text.indexOf('const LESSONS'); if(i < 0) throw new Error('badfile');
+    var j = text.indexOf('=', i), k = text.lastIndexOf(';');
+    var out = (new Function('return ' + text.slice(j + 1, k)))();
+    if(!Array.isArray(out)) throw new Error('badfile');
+    return out;
+  }
+  async function load(){
+    var r = await api(FILE);
+    if(r.status === 401 || r.status === 403) throw new Error('auth');
+    if(r.status === 404) throw new Error('notfound');
+    if(!r.ok) throw new Error('http');
+    var j = await r.json();
+    sha = j.sha;
+    lessons = parse(fromB64(j.content));
+  }
+  async function save(message){
+    var r = await api(FILE, {method: 'PUT', body: JSON.stringify({message: message, content: toB64(serialize(lessons)), sha: sha})});
+    if(r.status === 409 || r.status === 422) throw new Error('conflict');
+    if(r.status === 401 || r.status === 403) throw new Error('auth');
+    if(!r.ok) throw new Error('http');
+    sha = (await r.json()).content.sha;
+  }
+  function errText(e){
+    if(e.message === 'auth') return 'المفتاح غير صحيح أو ما عنده صلاحية على هذا المستودع.';
+    if(e.message === 'notfound') return 'ما لقيت المستودع أو الملف lessons.js. تأكد من اسم المستودع.';
+    if(e.message === 'conflict') return 'الملف تغيّر من مكان ثاني. حدّث الصفحة وحاول مرة ثانية.';
+    if(e.message === 'badfile') return 'شكل الملف lessons.js تغيّر ولا قدرت أقرأه.';
+    return 'صار خطأ في الاتصال. حاول مرة ثانية.';
+  }
+
+  /* ---------- العرض ---------- */
+  function show(which){
+    $('gate').hidden = which !== 'gate';
+    $('link').hidden = which !== 'link';
+    $('panel').hidden = which !== 'panel';
+    $('logout').hidden = which === 'gate';
+  }
+  function fmt(iso){
+    var p = iso.split('-').map(Number);
+    return new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {day: 'numeric', month: 'long', year: 'numeric'}).format(new Date(p[0], p[1]-1, p[2]));
+  }
+  function renderList(){
+    var ul = $('list'); ul.textContent = '';
+    if(!lessons.length){
+      var e = document.createElement('li'); e.className = 'muted'; e.textContent = 'ما فيه دروس بعد.'; ul.appendChild(e); return;
     }
-    try{ ok = (sha('lessons-admin|' + clean($('user').value).trim().toLowerCase() + '|' + clean($('pass').value))) === HASH; }catch(err){}
-    if(!ok){ say('gateStatus', 'اسم المستخدم أو كلمة المرور غير صحيحة.', true); return; }
-    try{ sessionStorage.setItem('auth', '1'); }catch(err){}
-    say('gateStatus', ''); $('gate').hidden = true; start();
-  });
-
-  $('add').addEventListener('submit', function(e){
-    e.preventDefault();
-    var students = $('students').value.split(/[,،]/).map(function(s){ return s.trim(); }).filter(Boolean);
-    var title = $('title').value.trim();
-    if(!title || !students.length || !$('date').value) return;
-    var entry = {title: title, students: students, date: $('date').value};
-    change(function(){ lessons.push(entry); }, 'إضافة درس: ' + title).then(function(){
-      if($('status').className.indexOf('err') < 0){ $('title').value = ''; $('students').value = ''; }
+    lessons.slice().sort(function(a, b){ return a.date < b.date ? 1 : -1; }).forEach(function(l){
+      var li = document.createElement('li'); li.className = 'item' + (l.done ? ' done' : '');
+      var info = document.createElement('div'); info.className = 'info';
+      var t = document.createElement('span'); t.className = 't'; t.textContent = l.title;
+      var m = document.createElement('span'); m.className = 'muted'; m.textContent = l.students.join('، ') + ' · ' + fmt(l.date);
+      info.appendChild(t); info.appendChild(m);
+      var btns = document.createElement('div'); btns.className = 'btns';
+      var d = document.createElement('button'); d.type = 'button'; d.textContent = l.done ? 'إلغاء تم الشرح' : 'تم الشرح';
+      d.addEventListener('click', function(){ change(function(){ if(l.done) delete l.done; else l.done = true; }, 'تحديث حالة: ' + l.title); });
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'danger'; x.textContent = 'حذف';
+      x.addEventListener('click', function(){
+        if(x.dataset.sure !== '1'){
+          x.dataset.sure = '1'; x.textContent = 'تأكيد الحذف';
+          setTimeout(function(){ x.dataset.sure = ''; x.textContent = 'حذف'; }, 3000);
+          return;
+        }
+        change(function(){ lessons.splice(lessons.indexOf(l), 1); }, 'حذف درس: ' + l.title);
+      });
+      btns.appendChild(d); btns.appendChild(x);
+      li.appendChild(info); li.appendChild(btns); ul.appendChild(li);
     });
+  }
+  async function change(fn, msg){
+    if(busy) return false;
+    busy = true; say('status', 'جاري الحفظ…');
+    var ok = false;
+    try{ fn(); await save(msg); renderList(); say('status', 'تم الحفظ. يظهر في الموقع بعد دقيقة تقريبًا.'); ok = true; }
+    catch(e){ say('status', errText(e), true); try{ await load(); renderList(); }catch(_){} }
+    busy = false;
+    return ok;
+  }
+
+  /* ---------- الأحداث ---------- */
+  $('showpass').addEventListener('change', function(){ $('pass').type = this.checked ? 'text' : 'password'; });
+
+  $('gate').addEventListener('submit', function(e){
+    e.preventDefault();
+    var good = false;
+    try{ good = sha256('lessons-admin|' + clean($('user').value) + '|' + clean($('pass').value)) === HASH; }
+    catch(err){ say('gateStatus', 'خطأ في المتصفح: ' + err.message, true); return; }
+    if(!good){ say('gateStatus', 'اسم المستخدم أو كلمة المرور غير صحيحة.', true); return; }
+    session('auth', '1'); say('gateStatus', ''); start();
   });
 
+  $('link').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var repo = $('repo').value.trim(), token = $('token').value.trim();
+    if(!repo || !token){ say('linkStatus', 'اكتب اسم المستودع والمفتاح.', true); return; }
+    store('repo', repo); store('token', token);
+    say('linkStatus', 'جاري التحقق…');
+    try{ await load(); $('token').value = ''; say('linkStatus', ''); show('panel'); renderList(); }
+    catch(err){ say('linkStatus', errText(err), true); store('token', null); }
+  });
+
+  $('logout').addEventListener('click', function(){ session('auth', null); lessons = []; $('pass').value = ''; show('gate'); });
+
+  $('add').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var title = $('title').value.trim();
+    var students = $('students').value.split(/[,،]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var date = $('date').value;
+    if(!title || !students.length || !date){ say('status', 'عبّ كل الخانات.', true); return; }
+    var ok = await change(function(){ lessons.push({title: title, students: students, date: date}); }, 'إضافة درس: ' + title);
+    if(ok){ $('title').value = ''; $('students').value = ''; }
+  });
+
+  /* ---------- البداية ---------- */
   async function start(){
     var n = new Date();
-    $('date').value = n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0');
+    if(!$('date').value) $('date').value = n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2, '0') + '-' + String(n.getDate()).padStart(2, '0');
     if(store('repo') && store('token')){
-      try{ await load(); showPanel(); return; }catch(e){}
+      try{ await load(); show('panel'); renderList(); return; }catch(e){}
     }
-    showLogin();
+    $('repo').value = store('repo') || '';
+    show('link');
   }
 
-  var authed = false;
-  try{ authed = sessionStorage.getItem('auth') === '1'; }catch(e){}
-  if(authed) start(); else showGate();
+  if(session('auth') === '1') start(); else show('gate');
 })();
 </script>
 </body>
