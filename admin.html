@@ -57,8 +57,8 @@ button.danger{color:var(--danger)}
 
   <form id="gate" class="card" hidden>
     <h2>تسجيل الدخول</h2>
-    <div class="field"><label for="user">اسم المستخدم</label><input id="user" dir="ltr" required autocomplete="username"></div>
-    <div class="field"><label for="pass">كلمة المرور</label><input id="pass" dir="ltr" type="password" required autocomplete="current-password"></div>
+    <div class="field"><label for="user">اسم المستخدم</label><input id="user" dir="ltr" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <div class="field"><label for="pass">كلمة المرور</label><input id="pass" dir="ltr" type="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <button class="primary" type="submit">دخول</button>
     <div class="status" id="gateStatus"></div>
   </form>
@@ -193,7 +193,7 @@ button.danger{color:var(--danger)}
 
   $('logout').addEventListener('click', function(){ try{ sessionStorage.removeItem('auth'); }catch(e){} lessons = []; showGate(); });
 
-  var HASH = 'b732e665d1892748b376a4a058ab9789627d1c6ca46b9460da050ee72fe33a8b';
+  var HASH = '6d3e03d0f819e60849dfcade8af42b7432c3549fd918b6addcc3e43353a58568';
   async function sha(s){
     var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
     return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
@@ -205,7 +205,8 @@ button.danger{color:var(--danger)}
   $('gate').addEventListener('submit', async function(e){
     e.preventDefault();
     var ok = false;
-    try{ ok = (await sha('lessons-admin|' + $('user').value.trim() + '|' + $('pass').value)) === HASH; }catch(err){}
+    if(!(window.crypto && crypto.subtle)){ say('gateStatus', 'المتصفح ما يدعم التحقق. افتح الصفحة من رابط https.', true); return; }
+    try{ ok = (await sha('lessons-admin|' + $('user').value.trim().toLowerCase() + '|' + $('pass').value)) === HASH; }catch(err){}
     if(!ok){ say('gateStatus', 'اسم المستخدم أو كلمة المرور غير صحيحة.', true); return; }
     try{ sessionStorage.setItem('auth', '1'); }catch(err){}
     say('gateStatus', ''); $('gate').hidden = true; start();
