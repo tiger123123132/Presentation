@@ -50,9 +50,8 @@ ul{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:non
   </header>
   <main id="out"></main>
 </div>
-<script src="lessons.js"></script>
 <script>
-(function(){
+function run(){
   var out = document.getElementById('out');
   var fmtMonth = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {month:'long'});
   var fmtFull = new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {weekday:'long', year:'numeric'});
@@ -98,7 +97,12 @@ ul{display:flex;flex-direction:column;gap:10px;margin:0;padding:0;list-style:non
   out.style.display = 'flex'; out.style.flexDirection = 'column'; out.style.gap = '28px';
   if(upcoming.length) group('الدروس القادمة', upcoming);
   if(past.length) group('الدروس السابقة', past);
-})();
+}
+// نحمّل الدروس برقم جديد كل مرة عشان ما يطلع لك الملف القديم من الكاش
+var s = document.createElement('script');
+s.src = 'lessons.js?v=' + Date.now();
+s.onload = run; s.onerror = run;
+document.body.appendChild(s);
 </script>
 </body>
 </html>
