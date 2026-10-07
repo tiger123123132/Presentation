@@ -59,6 +59,7 @@ button.danger{color:var(--danger)}
     <h2>تسجيل الدخول</h2>
     <div class="field"><label for="user">اسم المستخدم</label><input id="user" dir="ltr" required autocomplete="username" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
     <div class="field"><label for="pass">كلمة المرور</label><input id="pass" dir="ltr" type="password" required autocomplete="current-password" autocapitalize="off" autocorrect="off" spellcheck="false"></div>
+    <label style="display:flex;gap:8px;align-items:center"><input id="showpass" type="checkbox" style="width:auto"> إظهار كلمة المرور</label>
     <button class="primary" type="submit">دخول</button>
     <div class="status" id="gateStatus"></div>
   </form>
@@ -202,11 +203,18 @@ button.danger{color:var(--danger)}
     $('panel').hidden = true; $('panel').style.display = 'none'; $('login').hidden = true; $('logout').hidden = true;
     $('gate').hidden = false; $('pass').value = '';
   }
+  $('showpass').addEventListener('change', function(){ $('pass').type = this.checked ? 'text' : 'password'; });
   $('gate').addEventListener('submit', async function(e){
     e.preventDefault();
     var ok = false;
     if(!(window.crypto && crypto.subtle)){ say('gateStatus', 'المتصفح ما يدعم التحقق. افتح الصفحة من رابط https.', true); return; }
-    try{ ok = (await sha('lessons-admin|' + $('user').value.trim().toLowerCase() + '|' + $('pass').value)) === HASH; }catch(err){}
+    function clean(s){
+      return s.normalize('NFKC').replace(/[​-‏‪-‮⁦-⁩﻿]/g, '')
+        .replace(/[٠-٩]/g, function(c){ return String(c.charCodeAt(0) - 0x0660); })
+        .replace(/[۰-۹]/g, function(c){ return String(c.charCodeAt(0) - 0x06F0); })
+        .replace(/[٫۔。]/g, '.');
+    }
+    try{ ok = (await sha('lessons-admin|' + clean($('user').value).trim().toLowerCase() + '|' + clean($('pass').value))) === HASH; }catch(err){}
     if(!ok){ say('gateStatus', 'اسم المستخدم أو كلمة المرور غير صحيحة.', true); return; }
     try{ sessionStorage.setItem('auth', '1'); }catch(err){}
     say('gateStatus', ''); $('gate').hidden = true; start();
