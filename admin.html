@@ -30,6 +30,8 @@ p{margin:0}
 .field{display:flex;flex-direction:column;gap:4px;min-width:0}
 label{font-size:13px;color:var(--muted)}
 input[type=text],input[type=password],input[type=date]{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;min-width:0}
+input[type=date]{-webkit-appearance:none;appearance:none;display:block;max-width:100%;min-height:44px;text-align:right}
+input[type=date]::-webkit-date-and-time-value{text-align:right}
 .ltr{direction:ltr;text-align:left}
 .check{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--muted)}
 button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:none;color:var(--fg);padding:8px 14px}
@@ -54,7 +56,10 @@ button.danger{color:var(--danger)}
 <div class="wrap">
   <div class="top">
     <h1>إدارة الدروس</h1>
-    <button id="logout" type="button" hidden>تسجيل خروج</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button id="relink" type="button" hidden>تغيير المفتاح</button>
+      <button id="logout" type="button" hidden>تسجيل خروج</button>
+    </div>
   </div>
 
   <!-- 1) اسم المستخدم وكلمة المرور -->
@@ -89,6 +94,7 @@ button.danger{color:var(--danger)}
       <div class="field"><label for="students">الطلاب اللي بيشرحونه (افصل بينهم بفاصلة)</label><input id="students" type="text" placeholder="مثال: أحمد، خالد، فهد"></div>
       <div class="field"><label for="date">تاريخ الدرس</label><input id="date" type="date"></div>
       <button class="primary" id="addBtn" type="submit">إضافة</button>
+      <button id="cancelEdit" type="button" hidden>إلغاء التعديل</button>
       <div class="status" id="status"></div>
     </form>
     <section style="display:flex;flex-direction:column;gap:10px">
@@ -106,7 +112,7 @@ button.danger{color:var(--danger)}
   // بصمة (اسم المستخدم + كلمة المرور) بحروف صغيرة، فالحروف الكبيرة والصغيرة ما تفرق
   var HASH = '75d41e5d75c4936a0ab86a8500f16a993319b2574f892a53edd23ab9039f6d1d';
   var $ = function(id){ return document.getElementById(id); };
-  var lessons = [], sha = null, busy = false;
+  var lessons = [], sha = null, busy = false, editing = null;
 
   /* ---------- أدوات ---------- */
   function store(k, v){
@@ -221,6 +227,7 @@ button.danger{color:var(--danger)}
     $('link').hidden = which !== 'link';
     $('panel').hidden = which !== 'panel';
     $('logout').hidden = which === 'gate';
+    $('relink').hidden = which !== 'panel';
   }
   function fmt(iso){
     var p = iso.split('-').map(Number);
@@ -240,6 +247,8 @@ button.danger{color:var(--danger)}
       var btns = document.createElement('div'); btns.className = 'btns';
       var d = document.createElement('button'); d.type = 'button'; d.textContent = l.done ? 'إلغاء تم الشرح' : 'تم الشرح';
       d.addEventListener('click', function(){ change(function(){ if(l.done) delete l.done; else l.done = true; }, 'تحديث حالة: ' + l.title); });
+      var ed = document.createElement('button'); ed.type = 'button'; ed.textContent = 'تعديل';
+      ed.addEventListener('click', function(){ startEdit(l); });
       var x = document.createElement('button'); x.type = 'button'; x.className = 'danger'; x.textContent = 'حذف';
       x.addEventListener('click', function(){
         if(x.dataset.sure !== '1'){
@@ -249,9 +258,25 @@ button.danger{color:var(--danger)}
         }
         change(function(){ lessons.splice(lessons.indexOf(l), 1); }, 'حذف درس: ' + l.title);
       });
-      btns.appendChild(d); btns.appendChild(x);
+      btns.appendChild(d); btns.appendChild(ed); btns.appendChild(x);
       li.appendChild(info); li.appendChild(btns); ul.appendChild(li);
     });
+  }
+  function startEdit(l){
+    editing = l;
+    $('title').value = l.title;
+    $('students').value = l.students.join('، ');
+    $('date').value = l.date;
+    $('addBtn').textContent = 'حفظ التعديل';
+    $('cancelEdit').hidden = false;
+    say('status', 'تعدّل الحين على: ' + l.title);
+    $('add').scrollIntoView({behavior: 'smooth', block: 'start'});
+  }
+  function stopEdit(){
+    editing = null;
+    $('title').value = ''; $('students').value = '';
+    $('addBtn').textContent = 'إضافة';
+    $('cancelEdit').hidden = true;
   }
   async function change(fn, msg){
     if(busy) return false;
@@ -285,6 +310,10 @@ button.danger{color:var(--danger)}
     catch(err){ say('linkStatus', errText(err), true); store('token', null); }
   });
 
+  $('relink').addEventListener('click', function(){
+    store('token', null); $('repo').value = store('repo') || ''; $('token').value = ''; say('linkStatus', ''); show('link');
+  });
+
   $('logout').addEventListener('click', function(){ session('auth', null); lessons = []; $('pass').value = ''; show('gate'); });
 
   $('add').addEventListener('submit', async function(e){
@@ -293,9 +322,17 @@ button.danger{color:var(--danger)}
     var students = $('students').value.split(/[,،]/).map(function(s){ return s.trim(); }).filter(Boolean);
     var date = $('date').value;
     if(!title || !students.length || !date){ say('status', 'عبّ كل الخانات.', true); return; }
-    var ok = await change(function(){ lessons.push({title: title, students: students, date: date}); }, 'إضافة درس: ' + title);
-    if(ok){ $('title').value = ''; $('students').value = ''; }
+    var target = editing && lessons.indexOf(editing) >= 0 ? editing : null;
+    var ok;
+    if(target){
+      ok = await change(function(){ target.title = title; target.students = students; target.date = date; }, 'تعديل درس: ' + title);
+    }else{
+      ok = await change(function(){ lessons.push({title: title, students: students, date: date}); }, 'إضافة درس: ' + title);
+    }
+    if(ok) stopEdit();
   });
+
+  $('cancelEdit').addEventListener('click', function(){ stopEdit(); say('status', ''); });
 
   /* ---------- البداية ---------- */
   async function start(){
