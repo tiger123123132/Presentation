@@ -1,0 +1,240 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex">
+<title>إدارة الدروس</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Arabic:wght@400;500;600&family=Reem+Kufi:wght@500;700&display=swap">
+<style>
+:root{
+  color-scheme:light dark;
+  --bg:#f3f5f1; --surface:#ffffff; --fg:#1b2a26; --muted:#5d6f69; --line:#d9e0da;
+  --accent:#1f5d4a; --accent-fg:#ffffff; --danger:#a63b2b; --chalk:#f0b429;
+  --font-display:'Reem Kufi','IBM Plex Sans Arabic',system-ui,sans-serif;
+  --font-body:'IBM Plex Sans Arabic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#12201c; --surface:#192b26; --fg:#e9efeb; --muted:#9fb2aa; --line:#2b403a;
+  --accent:#5fbf9d; --accent-fg:#08201a; --danger:#e58a79;
+}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--fg);font-family:var(--font-body);font-size:16px;line-height:1.6;padding:24px 16px}
+.wrap{max-width:720px;margin-inline:auto;display:flex;flex-direction:column;gap:24px}
+h1{font-family:var(--font-display);font-weight:700;font-size:clamp(26px,6vw,36px);line-height:1.2;margin:0}
+h2{font-family:var(--font-display);font-weight:500;font-size:18px;margin:0}
+p{margin:0}
+.muted{color:var(--muted);font-size:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;display:grid;gap:12px}
+.field{display:flex;flex-direction:column;gap:4px;min-width:0}
+label{font-size:13px;color:var(--muted)}
+input{font:inherit;color:var(--fg);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 12px;width:100%;min-width:0}
+input[dir=ltr]{text-align:left}
+button{font:inherit;cursor:pointer;border-radius:8px;border:1px solid var(--line);background:none;color:var(--fg);padding:8px 14px}
+button.primary{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);font-weight:600;padding:10px 16px}
+button:disabled{opacity:.6;cursor:default}
+button.danger{color:var(--danger)}
+:focus-visible{outline:2px solid var(--chalk);outline-offset:2px}
+.list{display:flex;flex-direction:column;gap:8px;margin:0;padding:0;list-style:none}
+.item{display:flex;gap:12px;align-items:center;flex-wrap:wrap;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+.item .info{flex:1;min-width:200px;display:flex;flex-direction:column}
+.item .t{font-weight:600;overflow-wrap:anywhere}
+.item.done .t{opacity:.6;text-decoration:line-through}
+.item .btns{display:flex;gap:6px}
+.status{min-height:1.4em;font-size:14px}
+.status.err{color:var(--danger)}
+.top{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.ltr{direction:ltr;unicode-bidi:plaintext}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <h1>إدارة الدروس</h1>
+    <button id="logout" type="button" hidden>تسجيل خروج</button>
+  </div>
+
+  <form id="gate" class="card" hidden>
+    <h2>تسجيل الدخول</h2>
+    <div class="field"><label for="user">اسم المستخدم</label><input id="user" dir="ltr" required autocomplete="username"></div>
+    <div class="field"><label for="pass">كلمة المرور</label><input id="pass" dir="ltr" type="password" required autocomplete="current-password"></div>
+    <button class="primary" type="submit">دخول</button>
+    <div class="status" id="gateStatus"></div>
+  </form>
+
+  <form id="login" class="card" hidden>
+    <h2>ربط GitHub (مرة وحدة)</h2>
+    <p class="muted">الصفحة تحفظ التعديلات في GitHub، فتحتاج مفتاح الوصول (Token) حقك. ينحفظ في هذا المتصفح فقط.</p>
+    <div class="field"><label for="repo">اسم المستودع (مثال: saad/lessons)</label><input id="repo" dir="ltr" required placeholder="username/repo"></div>
+    <div class="field"><label for="token">مفتاح الوصول</label><input id="token" dir="ltr" type="password" required placeholder="github_pat_..."></div>
+    <button class="primary" type="submit">دخول</button>
+    <div class="status" id="loginStatus"></div>
+  </form>
+
+  <div id="panel" hidden style="display:none;flex-direction:column;gap:24px">
+    <form id="add" class="card">
+      <h2>إضافة درس</h2>
+      <div class="field"><label for="title">اسم الدرس</label><input id="title" required placeholder="مثال: الكسور العشرية"></div>
+      <div class="field"><label for="students">الطلاب اللي بيشرحونه (افصل بينهم بفاصلة)</label><input id="students" required placeholder="مثال: أحمد، خالد، فهد"></div>
+      <div class="field"><label for="date">تاريخ الدرس</label><input id="date" type="date" required></div>
+      <button class="primary" id="addBtn" type="submit">إضافة</button>
+      <div class="status" id="status"></div>
+    </form>
+    <section style="display:flex;flex-direction:column;gap:10px">
+      <h2>الدروس المضافة</h2>
+      <ul class="list" id="list"></ul>
+    </section>
+  </div>
+</div>
+
+<script>
+(function(){
+  var FILE = 'lessons.js';
+  var $ = function(id){ return document.getElementById(id); };
+  var lessons = [], sha = null, busy = false;
+
+  function store(k, v){ try{ if(v === undefined) return localStorage.getItem(k); if(v === null) localStorage.removeItem(k); else localStorage.setItem(k, v); }catch(e){} return null; }
+  function say(id, msg, err){ var e = $(id); e.textContent = msg || ''; e.className = 'status' + (err ? ' err' : ''); }
+
+  function api(path, opts){
+    opts = opts || {};
+    opts.headers = Object.assign({'Accept':'application/vnd.github+json','Authorization':'Bearer ' + store('token'),'X-GitHub-Api-Version':'2022-11-28'}, opts.headers || {});
+    opts.cache = 'no-store';
+    return fetch('https://api.github.com/repos/' + store('repo') + '/contents/' + path, opts);
+  }
+
+  function fromB64(b){ var bin = atob(b.replace(/\n/g,'')); var bytes = Uint8Array.from(bin, function(c){ return c.charCodeAt(0); }); return new TextDecoder().decode(bytes); }
+  function toB64(s){ var bytes = new TextEncoder().encode(s); var bin = ''; bytes.forEach(function(b){ bin += String.fromCharCode(b); }); return btoa(bin); }
+
+  function serialize(list){
+    return '// هذا الملف تعدله صفحة admin.html تلقائيًا.\n\nconst LESSONS = ' + JSON.stringify(list, null, 2) + ';\n';
+  }
+  function parse(text){
+    var i = text.indexOf('const LESSONS'); if(i < 0) throw new Error('bad file');
+    var j = text.indexOf('=', i), k = text.lastIndexOf(';');
+    return (new Function('return ' + text.slice(j + 1, k)))();
+  }
+
+  async function load(){
+    var r = await api(FILE);
+    if(r.status === 401 || r.status === 403) throw new Error('auth');
+    if(r.status === 404) throw new Error('notfound');
+    if(!r.ok) throw new Error('http ' + r.status);
+    var j = await r.json();
+    sha = j.sha;
+    lessons = parse(fromB64(j.content));
+  }
+
+  async function save(message){
+    var r = await api(FILE, {method:'PUT', body: JSON.stringify({message: message, content: toB64(serialize(lessons)), sha: sha})});
+    if(r.status === 409 || r.status === 422) throw new Error('conflict');
+    if(r.status === 401 || r.status === 403) throw new Error('auth');
+    if(!r.ok) throw new Error('http ' + r.status);
+    var j = await r.json();
+    sha = j.content.sha;
+  }
+
+  function errText(e){
+    if(e.message === 'auth') return 'المفتاح غير صحيح أو ما عنده صلاحية على هذا المستودع.';
+    if(e.message === 'notfound') return 'ما لقيت المستودع أو الملف lessons.js. تأكد من الاسم.';
+    if(e.message === 'conflict') return 'الملف تغيّر من مكان ثاني. حدّث الصفحة وحاول مرة ثانية.';
+    return 'صار خطأ في الاتصال. حاول مرة ثانية.';
+  }
+
+  function fmt(iso){ var p = iso.split('-').map(Number); return new Intl.DateTimeFormat('ar-SA-u-ca-gregory-nu-latn', {day:'numeric', month:'long', year:'numeric'}).format(new Date(p[0], p[1]-1, p[2])); }
+
+  function renderList(){
+    var ul = $('list'); ul.textContent = '';
+    if(!lessons.length){ var li = document.createElement('li'); li.className = 'muted'; li.textContent = 'ما فيه دروس بعد.'; ul.appendChild(li); return; }
+    lessons.map(function(l, i){ return {l:l, i:i}; }).sort(function(a, b){ return a.l.date < b.l.date ? 1 : -1; }).forEach(function(o){
+      var l = o.l, li = document.createElement('li'); li.className = 'item' + (l.done ? ' done' : '');
+      var info = document.createElement('div'); info.className = 'info';
+      var t = document.createElement('span'); t.className = 't'; t.textContent = l.title;
+      var m = document.createElement('span'); m.className = 'muted'; m.textContent = l.students.join('، ') + ' · ' + fmt(l.date);
+      info.appendChild(t); info.appendChild(m);
+      var btns = document.createElement('div'); btns.className = 'btns';
+      var d = document.createElement('button'); d.type = 'button'; d.textContent = l.done ? 'إلغاء تم الشرح' : 'تم الشرح';
+      d.addEventListener('click', function(){ change(function(){ if(l.done) delete l.done; else l.done = true; }, 'تحديث حالة: ' + l.title); });
+      var x = document.createElement('button'); x.type = 'button'; x.className = 'danger'; x.textContent = 'حذف';
+      x.addEventListener('click', function(){
+        if(x.dataset.sure !== '1'){ x.dataset.sure = '1'; x.textContent = 'تأكيد الحذف'; setTimeout(function(){ x.dataset.sure = ''; x.textContent = 'حذف'; }, 3000); return; }
+        change(function(){ lessons.splice(lessons.indexOf(l), 1); }, 'حذف درس: ' + l.title);
+      });
+      btns.appendChild(d); btns.appendChild(x);
+      li.appendChild(info); li.appendChild(btns); ul.appendChild(li);
+    });
+  }
+
+  async function change(fn, msg){
+    if(busy) return; busy = true; say('status', 'جاري الحفظ…');
+    try{ fn(); await save(msg); renderList(); say('status', 'تم الحفظ. التعديل يظهر في الموقع بعد دقيقة تقريبًا.'); }
+    catch(e){ say('status', errText(e), true); try{ await load(); renderList(); }catch(_){} }
+    busy = false;
+  }
+
+  function showPanel(){
+    $('login').hidden = true; $('logout').hidden = false;
+    $('panel').hidden = false; $('panel').style.display = 'flex';
+    renderList();
+  }
+  function showLogin(){
+    $('panel').hidden = true; $('panel').style.display = 'none'; $('logout').hidden = true; $('login').hidden = false;
+    $('repo').value = store('repo') || '';
+  }
+
+  $('login').addEventListener('submit', async function(e){
+    e.preventDefault();
+    store('repo', $('repo').value.trim()); store('token', $('token').value.trim());
+    say('loginStatus', 'جاري التحقق…');
+    try{ await load(); $('token').value = ''; say('loginStatus', ''); showPanel(); }
+    catch(err){ say('loginStatus', errText(err), true); store('token', null); }
+  });
+
+  $('logout').addEventListener('click', function(){ try{ sessionStorage.removeItem('auth'); }catch(e){} lessons = []; showGate(); });
+
+  var HASH = 'b732e665d1892748b376a4a058ab9789627d1c6ca46b9460da050ee72fe33a8b';
+  async function sha(s){
+    var buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+    return Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,'0'); }).join('');
+  }
+  function showGate(){
+    $('panel').hidden = true; $('panel').style.display = 'none'; $('login').hidden = true; $('logout').hidden = true;
+    $('gate').hidden = false; $('pass').value = '';
+  }
+  $('gate').addEventListener('submit', async function(e){
+    e.preventDefault();
+    var ok = false;
+    try{ ok = (await sha('lessons-admin|' + $('user').value.trim() + '|' + $('pass').value)) === HASH; }catch(err){}
+    if(!ok){ say('gateStatus', 'اسم المستخدم أو كلمة المرور غير صحيحة.', true); return; }
+    try{ sessionStorage.setItem('auth', '1'); }catch(err){}
+    say('gateStatus', ''); $('gate').hidden = true; start();
+  });
+
+  $('add').addEventListener('submit', function(e){
+    e.preventDefault();
+    var students = $('students').value.split(/[,،]/).map(function(s){ return s.trim(); }).filter(Boolean);
+    var title = $('title').value.trim();
+    if(!title || !students.length || !$('date').value) return;
+    var entry = {title: title, students: students, date: $('date').value};
+    change(function(){ lessons.push(entry); }, 'إضافة درس: ' + title).then(function(){
+      if($('status').className.indexOf('err') < 0){ $('title').value = ''; $('students').value = ''; }
+    });
+  });
+
+  async function start(){
+    var n = new Date();
+    $('date').value = n.getFullYear() + '-' + String(n.getMonth()+1).padStart(2,'0') + '-' + String(n.getDate()).padStart(2,'0');
+    if(store('repo') && store('token')){
+      try{ await load(); showPanel(); return; }catch(e){}
+    }
+    showLogin();
+  }
+
+  var authed = false;
+  try{ authed = sessionStorage.getItem('auth') === '1'; }catch(e){}
+  if(authed) start(); else showGate();
+})();
+</script>
+</body>
+</html>
